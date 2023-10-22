@@ -1,25 +1,21 @@
 <template>
   <div id="app">
-    <HighscoresList />
+    <h1>Meine CRUD-Anwendung</h1>
+    <BeispielComponent />
   </div>
 </template>
 
 <script>
-import HighscoresList from './components/HighscoresList.vue'
+import BeispielComponent from "@/components/BeispielComponent.vue";
 
 export default {
+  name: 'App',
   components: {
-    HighscoresList
+    BeispielComponent
   }
-}
+};
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  margin-top: 60px;
-}
+/* Deine CSS-Stile hier */
 </style>
