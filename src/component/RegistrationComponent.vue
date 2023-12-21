@@ -1,28 +1,32 @@
 <template>
-  <div>
-    <button @click="toggleView">
+  <div class="login-container">
+    <button @click="toggleView" class="toggle-button">
       {{ showLogin ? 'Zur Registrierung wechseln' : 'Zum Login wechseln' }}
     </button>
 
-    <!-- Login-Formular -->
-    <div class="registration" v-if="showLogin">
-      <h2>Login</h2>
-      <input v-model.trim="loginData.username" placeholder="Benutzername" />
-      <input v-model.trim="loginData.password" placeholder="Passwort" type="password" />
-      <button @click="login">Login</button>
+    <!-- Erfolgsmeldung -->
+    <div v-if="successMessage" class="success-message">
+      <p>{{ successMessage }}</p>
+    </div>
 
-      <button @click="logout">Logout</button>
+    <!-- Login-Formular -->
+    <div v-if="showLogin">
+      <h2>Login</h2>
+      <input v-model.trim="loginData.username" placeholder="Benutzername" class="input-field" />
+      <input v-model.trim="loginData.password" placeholder="Passwort" type="password" class="input-field" />
+      <button @click="login" class="login-button">Login</button>
+      <button @click="logout" class="logout-button">Logout</button>
     </div>
 
     <!-- Registrierungsformular -->
-    <div class="registration" v-else>
+    <div v-else>
       <h2>Registrierung</h2>
-      <input v-model.trim="registerData.username" placeholder="Benutzername" />
-      <input v-model.trim="registerData.password" placeholder="Passwort" type="password" />
-      <button @click="register">Registrieren</button>
+      <input v-model.trim="registerData.username" placeholder="Benutzername" class="input-field" />
+      <input v-model.trim="registerData.password" placeholder="Passwort" type="password" class="input-field" />
+      <button @click="register" class="register-button">Registrieren</button>
     </div>
 
-    <div v-if="errorMessage">
+    <div v-if="errorMessage" class="error-message">
       <p>{{ errorMessage }}</p>
     </div>
   </div>
@@ -41,6 +45,7 @@ export default {
       registerData: { username: "", password: "" },
       errorMessage: null,
       pointsData: { points: 0 },
+      successMessage: null,
     };
   },
   mounted() {
@@ -100,6 +105,7 @@ export default {
           const token = await response.text();
           localStorage.setItem('token', token);
           console.log('Login erfolgreich:', token);
+          this.successMessage = 'Login erfolgreich';
 
           // Setzen des Benutzernamens im Vuex Store
           this.$store.commit('setUsername', this.loginData.username);
@@ -143,6 +149,7 @@ export default {
       this.$store.commit('resetState');
       this.showLogin = true;
       console.log('Logout erfolgreich');
+      this.successMessage = 'Logout erfolgreich';
     },
 
     async fetchUserData() {
@@ -194,14 +201,48 @@ export default {
 
 
 <style scoped>
+.login-container {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 300px;
+  margin: auto;
+}
 
-.registration input {
-  display: block;
+.input-field {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.login-button, .logout-button, .register-button, .toggle-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
   width: 100%;
   margin-bottom: 10px;
 }
-.registration button {
-  display: block;
-  width: 100%;
+
+.login-button:hover, .logout-button:hover, .register-button:hover, .toggle-button:hover {
+  background-color: #45a049;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+}
+
+.success-message {
+  color: green;
+  margin-top: 10px;
 }
 </style>
+
