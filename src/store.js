@@ -60,7 +60,7 @@ export default createStore({
             const skin = this.savedSkins[index];
             this.selectedColor = skin.color;
             this.selectedShape = skin.shape;
-            this.$store.commit('setCurrentSkin', skin);  // Diese Zeile hinzufügen
+            this.$store.commit('setCurrentSkin', skin);
             this.updateSkin();
         },
         setSelectedSkin(state, skin) {

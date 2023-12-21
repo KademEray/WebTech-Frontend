@@ -5,7 +5,7 @@
     </header>
     <div class="main-container">
       <skin-editor v-if="!isLoggedIn" />
-      <snake-game v-else />
+      <snake-game/>
       <login-register v-if="!isLoggedIn" @login-success="handleLoginSuccess" />
     </div>
   </div>
