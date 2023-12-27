@@ -9,6 +9,11 @@
       <p>{{ successMessage }}</p>
     </div>
 
+    <!-- Fehlermeldung -->
+    <div v-if="errorMessage" :class="messageClass">
+      <p>{{ errorMessage }}</p>
+    </div>
+
     <!-- Login-Formular -->
     <div v-if="showLogin">
       <h2>Login</h2>
@@ -26,9 +31,7 @@
       <button @click="register" class="register-button">Registrieren</button>
     </div>
 
-    <div v-if="errorMessage" class="error-message">
-      <p>{{ errorMessage }}</p>
-    </div>
+
   </div>
 </template>
 
@@ -53,12 +56,22 @@ export default {
       this.fetchUserSkins();
     }
   },
+  computed: {
+    messageClass() {
+      return {
+        'error-message': this.errorMessage && !this.errorMessage.includes('erfolgreich'),
+        'success-message': this.errorMessage && this.errorMessage.includes('erfolgreich')
+      };
+    }
+  },
   methods: {
     toggleView() {
       this.showLogin = !this.showLogin;
       this.errorMessage = null;
     },
     async register() {
+      this.errorMessage = null; // Setze die Fehlermeldung zurück
+      this.successMessage = null; // Setze die Erfolgsmeldung zurück
       if (!this.registerData.username || !this.registerData.password) {
         this.errorMessage = 'Benutzername und Passwort sind erforderlich';
         return;
@@ -69,18 +82,22 @@ export default {
           headers: { 'Content-Type': 'application/json; charset=utf-8' },
           body: JSON.stringify(this.registerData)
         });
-        if (!response.ok) {
+        if (response.ok) {
+          const userData = await response.json();
+          console.log('Registrierung erfolgreich:', userData);
+          // Anzeigen der Login-Ansicht nach erfolgreicher Registrierung
+          this.showLogin = true;
+        } else {
           const errorData = await response.json();
           this.errorMessage = errorData.message || 'Registrierung fehlgeschlagen';
-          return;
         }
-        const userData = await response.json();
-        console.log('Registrierung erfolgreich:', userData);
       } catch (error) {
         console.error('Registrierung fehlgeschlagen:', error);
         this.errorMessage = 'Registrierung fehlgeschlagen';
       }
     },
+
+
     async login() {
       // Setze den Benutzernamen und den Token im Vuex-Store zurück
       this.$store.commit('setPoints', 0);
@@ -235,14 +252,11 @@ export default {
   background-color: #45a049;
 }
 
-.error-message {
-  color: red;
-  margin-top: 10px;
-}
-
 .success-message {
   color: green;
-  margin-top: 10px;
+}
+.error-message {
+  color: red;
 }
 </style>
 

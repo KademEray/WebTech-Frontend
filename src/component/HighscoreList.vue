@@ -1,0 +1,153 @@
+<template>
+  <div class="Highscore-container">
+    <strong><h1 class="titel">Highscores</h1></strong>
+    <div class="separator-line"></div>
+    <ul class="Highscore-list">
+      <li v-for="(user, index) in users" :key="user.id" :class="{'gold-frame': index === 0, 'silver-frame': index === 1, 'bronze-frame': index === 2, 'logged-in-user': isCurrentUser(user.username)}">
+        <span class="rank">{{ index + 1 }}.</span> <!-- Punkt nach der Platzierungsnummer -->
+        <span class="username">{{ user.username }}</span>
+        <span class="points">{{ user.points }}</span>
+      </li>
+    </ul>
+  </div>
+</template>
+
+
+
+<script>
+
+  import Highscore from "../component/Highscore.js"
+  import {mapState} from "vuex";
+  export default {
+
+    computed: {
+      ...mapState({
+        users: state => state.highscores,
+        currentUser: state => state.username,
+      }),
+    },
+    mounted() {
+      this.$store.dispatch('fetchHighscores');
+    },
+    methods: {
+      isCurrentUser(username) {
+        return this.currentUser === username;
+      },
+    },
+};
+</script>
+
+<style scoped>
+@font-face {
+  font-family: 'Rocher';
+  src: url('https://assets.codepen.io/9632/RocherColorGX.woff2');
+}
+.Highscore-container {
+  width: 500px;
+  max-height: 80vh;
+  overflow: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 650px;
+  border: rgb(252,212,92);
+  margin-bottom: 210px;
+}
+
+.titel {
+  font-family: 'Rocher', sans-serif;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 50px;
+}
+
+.separator-line {
+    margin-bottom: 10px;
+    top: 0;
+    left: 5%;
+    right: 5%;
+    width: 90%;
+    height: 8px;
+    background-image: linear-gradient(to right, transparent, rgb(252,212,92), transparent);
+
+}
+
+.Highscore-list {
+  font-family: 'Rocher', sans-serif;
+  list-style: none;
+  padding: 0;
+  width: 100%;
+}
+
+.Highscore-list li {
+  font-family: 'Rocher', sans-serif;
+  display: flex;
+  justify-content: space-between; /* Elemente verteilen */
+  border-bottom: 1px solid black; /* Dickeren Linienstil */
+  padding: 5px 0; /* Abstand oben und unten */
+  margin-bottom: 3px; /* 2px Abstand nach unten für jedes Listenelement */
+}
+
+.rank, .username, .points {
+  font-family: 'Rocher', sans-serif;
+  flex: 1; /* Gleichmäßige Verteilung der Elemente */
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.username {
+  font-family: 'Rocher', sans-serif;
+  text-align: center; /* Username zentrieren */
+}
+
+.points {
+  font-family: 'Rocher', sans-serif;
+  text-align: right; /* Punkte rechtsbündig */
+}
+
+.gold-frame {
+  border: 3px solid;
+  border-image: linear-gradient(to right, #ffd700, #ffcc00, #ffd700) 1;
+  box-shadow: 0 0 8px #ffd700, 0 0 15px #ffd700; /* Verstärkter Gold-Leuchteffekt */
+}
+
+.silver-frame {
+  border: 3px solid;
+  border-image: linear-gradient(to right, #c0c0c0, #d9d9d9, #c0c0c0) 1;
+  box-shadow: 0 0 8px #c0c0c0, 0 0 15px #c0c0c0; /* Verstärkter Silber-Leuchteffekt */
+}
+
+.bronze-frame {
+  border: 3px solid;
+  border-image: linear-gradient(to right, #cd7f32, #e5ac6d, #cd7f32) 1;
+  box-shadow: 0 0 8px #cd7f32 /* Verstärkter Bronze-Leuchteffekt */
+}
+
+.logged-in-user {
+  background-color: #39ff14; /* Lebendiges Grün */
+  color: black;
+  box-shadow: 0 0 5px #39ff14, /* Leichter äußerer Leuchteffekt */
+  0 0 10px #39ff14; /* Stärkerer äußerer Leuchteffekt */
+}
+
+/* Zusätzlicher Stil für Text-Leuchteffekt */
+.Highscore-list li {
+  position: relative;
+  z-index: 1;
+}
+
+.Highscore-list li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: inherit;
+  box-shadow: inherit;
+}
+</style>
+
+

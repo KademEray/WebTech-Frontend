@@ -1,271 +1,284 @@
 <template>
-  <div class="game-container" @keydown="handleKeydown" tabindex="0">
-    <canvas ref="gameCanvas" :width="canvasWidth" :height="canvasHeight"></canvas>
-    <div class="score-board">
-      Punkte: {{ store.state.points }}
+  <div class="game-container">
+    <div class="scoreboard">
+      <div class="points">Points: {{ points }}</div>
+      <div class="Highscore">Highscore: {{ Highscore }}</div>
+    </div>
+    <div class="snake-game" @keydown="handleKeydown" tabindex="0">
+      <canvas ref="gameCanvas" :width="canvasWidth" :height="canvasHeight"></canvas>
     </div>
   </div>
 </template>
 
 <script>
 import store from "../store";
+import Snake from "./Snake.js";
+import Board from "./Board.js";
+
 
 export default {
+  computed: {
+    store() {
+      return store;
+    },
+    points() {
+      return this.$store.state.points;
+    },
+    Highscore() {
+      return this.$store.state.highscore;
+    },
+    username() {
+      // Annahme: Benutzername ist im Vuex Store gespeichert
+      return this.$store.state.username;
+    }
+  },
+
+  props: {
+    isMuted: {
+      type: Boolean,
+      required: true
+    },
+  },
+
+
+  watch: {
+    isMuted(newVal) {
+      if (newVal) {
+        this.muteSounds();
+      } else {
+        this.unmuteSounds();
+      }
+    },
+  },
+
+
   data() {
     return {
       isActive: false,
       canvasWidth: 700,
       canvasHeight: 700,
-      ctx: null,
-      snake: [],
-      food: {},
-      direction: "right",
+      snake: null,
+      board: null,
+      lastRenderTime: 0,
+      moveInterval: 0.15,
+      gameOver: false, // Neuer Statusindikator
+      lastKeydownTime: 0,
+      keyDelay: 100, // Verzögerung in Millisekunden
+      gameSounds: {
+        eatSound: new Audio('/scale-d6-106129.mp3'),
+      },
     };
   },
+
+
   mounted() {
-    this.ctx = this.$refs.gameCanvas.getContext("2d");
-    this.initGame();
-    this.direction = "right"; // Setzt die Anfangsrichtung auf Rechts
-    this.$el.focus();
-    this.draw(); // Startet das Zeichnen der Schlange und des Spiels
+    const ctx = this.$refs.gameCanvas.getContext("2d");
+    this.snake = new Snake(ctx, store);
+    // Übergeben Sie eine Callback-Funktion an Board
+    this.board = new Board(ctx, this.canvasWidth, this.canvasHeight, () => this.updateHighscoreIfNeeded());
+    this.snake.initSnake(this.canvasWidth / 2, this.canvasHeight / 2, 'up');
+    this.board.initGame(this.snake);
   },
-  computed: {
-    store() {
-      return store
-    },
-    selectedShape() {
-      return this.$store.state.selectedShape;
-    },
-    snakeColor() {
-      return this.$store.state.selectedColor;  // Angenommen, Sie haben selectedColor im Vuex Store
-    }
-  },
+
   methods: {
-
     handleKeydown(event) {
-      if (!this.isActive && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
-        this.isActive = true;
-        this.draw();
-      }
-      this.changeDirection(event);
-    },
-    initGame() {
-      // Startposition der Schlange
-      this.snake = [
-        { x: 100, y: 100 },  // Kopf der Schlange
-        { x: 80, y: 100 },   // Zweites Segment
-        { x: 60, y: 100 },   // Drittes Segment
-      ];
-      this.spawnFood();
-    },
-    draw() {
-      if (!this.isActive) return;
-
-      this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-
-      // Zeichnen der Umrandung
-      this.ctx.fillStyle = "#000"; // Schwarze Farbe
-      this.ctx.fillRect(0, 0, this.canvasWidth, 4); // Oberer Rand
-      this.ctx.fillRect(0, 0, 4, this.canvasHeight); // Linker Rand
-      this.ctx.fillRect(0, this.canvasHeight - 4, this.canvasWidth, 4); // Unterer Rand
-      this.ctx.fillRect(this.canvasWidth - 4, 0, 4, this.canvasHeight); // Rechter Rand
-
-      this.drawSnake();
-      this.drawFood();
-      this.moveSnake();
-      this.checkCollision();
-      this.checkFoodCollision();
-      setTimeout(this.draw, 100);
-    },
-
-    // Haupt-Snake-Komponente, wo die drawSnake Methode definiert ist
-    drawSnake() {
-      // Ändern Sie die Größe der Schlange
-      const snakeSize = 20;
-
-      // Farbe und Form aus dem Vuex Store holen
-      const selectedColor = this.$store.state.currentSkin ? this.$store.state.currentSkin.color : '#000000'; // Standardfarbe als Fallback
-      const selectedShape = this.$store.state.currentSkin ? this.$store.state.currentSkin.shape : 'rectangle'; // Standardform als Fallback
-
-      this.snake.forEach((segment, index) => {
-        this.ctx.fillStyle = selectedColor; // Verwenden Sie die ausgewählte Farbe
-
-        if (selectedShape === 'rectangle') {
-          this.ctx.fillRect(segment.x, segment.y, snakeSize, snakeSize);
-        } else if (selectedShape === 'circle') {
-          this.ctx.beginPath();
-          this.ctx.arc(segment.x + snakeSize / 2, segment.y + snakeSize / 2, snakeSize / 2, 0, Math.PI * 2);
-          this.ctx.fill();
-        } else if (selectedShape === 'triangle') {
-          this.ctx.beginPath();
-          this.ctx.moveTo(segment.x, segment.y);
-          this.ctx.lineTo(segment.x + snakeSize, segment.y);
-          this.ctx.lineTo(segment.x + snakeSize / 2, segment.y + snakeSize);
-          this.ctx.closePath();
-          this.ctx.fill();
-        }
-      });
-    },
-
-
-
-
-    drawFood() {
-      const foodSize = 20;
-      this.ctx.fillStyle = "red";
-      this.ctx.fillRect(this.food.x, this.food.y, foodSize, foodSize);
-    },
-
-    moveSnake() {
-      let head = { ...this.snake[0] };
-      const step = 20;
-      switch (this.direction) {
-        case "up":
-          head.y -= step;
-          break;
-        case "down":
-          head.y += step;
-          break;
-        case "left":
-          head.x -= step;
-          break;
-        case "right":
-          head.x += step;
-          break;
-      }
-      this.snake.unshift(head);
-      this.snake.pop();
-    },
-    changeDirection(event) {
-      const key = event.key;
-      const oppositeDirections = {
-        'up': 'down',
-        'down': 'up',
-        'left': 'right',
-        'right': 'left'
-      };
-      if (this.direction === oppositeDirections[key.replace('Arrow', '').toLowerCase()]) {
+      const currentTime = Date.now();
+      if (currentTime - this.lastKeydownTime < this.keyDelay) {
+        // Ignoriere den Tastendruck, wenn die Verzögerung noch nicht abgelaufen ist
         return;
       }
-      switch (key) {
-        case "ArrowUp":
-          this.direction = "up";
-          break;
-        case "ArrowDown":
-          this.direction = "down";
-          break;
-        case "ArrowLeft":
-          this.direction = "left";
-          break;
-        case "ArrowRight":
-          this.direction = "right";
-          break;
-      }
-    },
-    spawnFood() {
-      const foodSize = 20; // Ändern Sie dies entsprechend
-      const x = Math.floor((Math.random() * (this.canvasWidth - foodSize)) / foodSize) * foodSize;
-      const y = Math.floor((Math.random() * (this.canvasHeight - foodSize)) / foodSize) * foodSize;
-      this.food = { x, y };
-    },
-    checkCollision() {
-      const head = this.snake[0];
-      const snakeSize = 20; // Die Größe eines Segments der Schlange
 
-      // Überprüfen Sie, ob die Schlange sich selbst berührt
-      for (let i = 1; i < this.snake.length; i++) {
-        if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
-          alert("Game Over");
-          this.isActive = false;
-          return;
-        }
+      // Aktualisiere den Zeitpunkt des letzten Tastendrucks
+      this.lastKeydownTime = currentTime;
+
+      if (!this.isActive && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+        this.isActive = true;
+        this.lastRenderTime = performance.now();
+        this.gameLoop();
       }
 
-      // Überprüfen Sie, ob die Schlange die Wand berührt
-      if (
-          head.x < 0 + snakeSize / 2 || // Linker Rand
-          head.y < 0 + snakeSize / 2 || // Oberer Rand
-          head.x >= this.canvasWidth - snakeSize / 2 || // Rechter Rand
-          head.y >= this.canvasHeight - snakeSize / 2 // Unterer Rand
-      ) {
+      // Reagiere nur auf Pfeiltasten, ignoriere andere Tasten
+      if (this.isActive && this.snake && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+        this.snake.changeDirection(event.key);
+      }
+    },
+
+    muteSounds() {
+      // Mute logic for all sounds
+      this.gameSounds.eatSound.muted = true;
+    },
+
+    unmuteSounds() {
+      // Unmute logic for all sounds
+      this.gameSounds.eatSound.muted = false;
+    },
+
+    playEatSound() {
+      if (!this.isMuted) {
+        this.gameSounds.eatSound.play();
+      }
+    },
+
+
+    async gameLoop(currentTime) {
+      if (!this.isActive) {
+        return;
+      }
+      requestAnimationFrame(this.gameLoop);
+
+      const secondsSinceLastRender = (currentTime - this.lastRenderTime) / 1000;
+      if (secondsSinceLastRender < this.moveInterval) return;
+      this.lastRenderTime = currentTime;
+
+      this.board.draw();
+      this.snake.moveSnake();
+
+      if (this.board.checkCollision() || this.snake.checkSelfCollision()) {
+        this.gameOver = true;
         alert("Game Over");
-        this.isActive = false;
-        this.initGame();
+        await this.resetGame();
+      }
+
+      // Überprüfen, ob der Snake den Food gegessen hat
+      if (this.snake.getHead().x === this.board.food.x && this.snake.getHead().y === this.board.food.y) {
+        this.snake.grow();
+        this.playEatSound();
+        // Spawn eines neuen Foods, sobald der aktuelle gegessen wurde
+        this.board.spawnFood();
+        this.$store.commit('addPoints', 10); // Punkte hinzufügen
+        this.updateHighscoreIfNeeded();
+        await this.updatePointsInDatabase();
       }
     },
 
+    async resetGame() {
+      this.isActive = false;
+      this.gameOver = false;
+      this.snake.initSnake(this.canvasWidth / 2, this.canvasHeight / 2, 'up');
+      this.board.initGame(this.snake);
+      this.$store.commit('setPoints', 0); // Punkte zurücksetzen
 
-    checkFoodCollision() {
-      if (
-          this.snake[0].x === this.food.x &&
-          this.snake[0].y === this.food.y
-      ) {
-        // Punktestand direkt aus dem Vuex-Store aktualisieren
-        let points = this.$store.state.points;
+      // Laden Sie den aktuellen Highscore vom Backend und aktualisieren Sie den Vuex Store
+      await this.loadUserHighscore(this.username);
 
-        if (this.logout) {
-          points = 0;  // Punktestand auf 0 setzen, wenn logout
-        }
-
-        points++;
-        this.$store.commit('setPoints', points);
-        this.updatePointsInDatabase();  // Punkte in der Datenbank aktualisieren
-
-        this.snake.push({ ...this.snake[this.snake.length - 1] });
-        this.spawnFood();
-      }
+      // Laden Sie die Highscore-Liste neu
+      await this.$store.dispatch('fetchHighscores');
     },
-    async updatePointsInDatabase() {
+
+    async loadUserHighscore(username) {
       const token = localStorage.getItem('token');
-      const username = this.$store.state.username; // Holen Sie den Benutzernamen aus dem Vuex Store
-      const points = this.$store.state.points;
+      if (!username || !token) return;
 
       try {
-        const response = await fetch(`http://localhost:8081/api/users/${username}/points`, {
+        const HighscoreResponse = await fetch(`http://localhost:8081/api/users/${username}/points`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (HighscoreResponse.ok) {
+          const Highscore = await HighscoreResponse.json();
+          this.$store.commit('setHighscore', Highscore);
+        }
+      } catch (error) {
+        console.error('Fehler beim Laden des Highscores:', error);
+      }
+    },
+
+
+    updateHighscoreIfNeeded() {
+      if (this.points > this.highscore) {
+        this.$store.commit('setHighscore', this.points);
+        this.updateHighscoreInDatabase(this.points);
+      }
+    },
+
+    async updateHighscoreInDatabase(newHighscore) {
+      try {
+        const response = await fetch(`/api/users/${this.username}/points`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify(points)
+          body: JSON.stringify({ Highscore: newHighscore })
         });
 
-        if (response.ok) {
-          console.log('Punkte erfolgreich aktualisiert');
-        } else {
-          console.log('Fehler beim Aktualisieren der Punkte');
+        if (!response.ok) {
+          throw new Error('Fehler beim Aktualisieren des Highscores');
         }
+        console.log('Highscore erfolgreich aktualisiert');
       } catch (error) {
-        console.error('Ein Fehler ist aufgetreten:', error);
+        console.error('Fehler beim Aktualisieren des Highscores:', error);
+      }
+    },
+
+    async updatePointsInDatabase() {
+      const username = this.$store.state.username;
+      const points = this.$store.state.points;
+
+      try {
+        const response = await fetch(`/api/users/${username}/points`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({points})
+        });
+
+        if (!response.ok) {
+          throw new Error('Fehler beim Aktualisieren der Benutzerpunkte');
+        }
+        console.log('Punkte erfolgreich aktualisiert');
+      } catch (error) {
+        console.error('Fehler beim Aktualisieren der Punkte:', error);
       }
     }
+    },
 
-
+  isNewHighscore() {
+    return this.points > this.Highscore;
   },
+
+
+
 
 };
 </script>
 
 <style scoped>
+@font-face {
+  font-family: 'Rocher';
+  src: url('https://assets.codepen.io/9632/RocherColorGX.woff2');
+}
 .game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.scoreboard {
+  font-family: 'Rocher', sans-serif;
+  display: flex;
+  justify-content: space-between;
+  width: 600px; /* Gleiche Breite wie das Canvas */
+  margin-bottom: 10px;
+}
+
+.points, .Highscore {
+  font-family: 'Rocher', sans-serif;
+  font-weight: bold;
+  font-size: 26px;
+}
+
+.snake-game {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 70vh;
-  margin-top: 50px;
+
 }
 
 canvas {
-  /* Entferne den schwarzen Rand und passe den Hintergrund an */
-  border: none;
-  background: #f0f0f0; /* Hintergrundfarbe des Canvas */
-}
+  border: 4px solid #000;
 
-.score-board {
-  margin-left: 20px;
-  font-size: 1.5em;
-  color: #333;
 }
-
-/* ... (weitere vorhandene Stile bleiben unverändert) */
 </style>
+

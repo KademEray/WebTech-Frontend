@@ -1,63 +1,231 @@
 <template>
   <div id="app">
-    <header>
-      <!-- Hier könnte eine Navigationsleiste oder ein Logo eingefügt werden -->
-    </header>
-    <div class="main-container">
-      <skin-editor v-if="!isLoggedIn" />
-      <snake-game/>
-      <login-register v-if="!isLoggedIn" @login-success="handleLoginSuccess" />
+    <!-- Navigationsleiste -->
+    <nav class="navbar">
+      <div class="nav-buttons">
+        <a href="#" @click.prevent="toggleMute" class="speaker" :class="{ 'mute': isMuted }">
+          <span></span>
+        </a>
+        <button @click="showLoginOverlay" class="nav-button">Login</button>
+        <button @click="logout" class="nav-button">Logout</button>
+      </div>
+    </nav>
+
+    <!-- LoginOverlay und Hauptinhalt -->
+    <LoginOverlay v-if="!isAuthenticated" @authenticated="handleAuthenticated" />
+    <div class="main-container" v-if="isAuthenticated">
+      <skin-editor class="skin-editor" v-if="!isLoggedIn" />
+      <SnakeGame :is-muted="isMuted" class="snake-game" />
+      <Highscore-list class="Highscore-container" />
     </div>
   </div>
 </template>
 
 <script>
+import LoginOverlay from './component/LoginOverlay.vue';
 import SnakeGame from './component/SnakeGameComponent.vue';
 import SkinEditor from './component/SkinEditorComponent.vue';
-import LoginRegister from './component/RegistrationComponent.vue';
+import HighscoreList from './component/HighscoreList.vue';
 
 export default {
   name: 'App',
   components: {
+    LoginOverlay,
     SnakeGame,
     SkinEditor,
-    LoginRegister,
+    HighscoreList,
   },
   data() {
     return {
       isLoggedIn: false,
+      isAuthenticated: false,
+      isMuted: false,
     };
   },
   methods: {
-    handleLoginSuccess() {
-      this.isLoggedIn = true;
+
+    showLoginOverlay() {
+      this.isAuthenticated = false; // Zeigt das Login-Overlay
     },
+    logout() {
+      this.isAuthenticated = false;
+      this.isLoggedIn = false;
+
+      // Lösche den Token aus dem Local Storage
+      localStorage.removeItem('token');
+
+      // Setze den Benutzernamen und den Token im Vuex-Store zurück
+      this.$store.commit('logout');
+      this.$store.commit('setUsername', null);
+      this.$store.commit('setPoints', 0);
+      this.$store.commit('resetState');
+      this.showLogin = true;
+      console.log('Logout erfolgreich');
+      this.successMessage = 'Logout erfolgreich';
+
+      // Hier kann die Logout-Logik hinzugefügt werden, z.B. Token entfernen
+    },
+    handleAuthenticated() {
+      this.isAuthenticated = true;
+    },
+
+    toggleMute() {
+      this.isMuted = !this.isMuted;
+    },
+
   },
+
 };
 </script>
 
 <style>
+@font-face {
+  font-family: 'Rocher';
+  src: url('https://assets.codepen.io/9632/RocherColorGX.woff2');
+}
+
+/* Navigationsleiste */
+.navbar {
+  font-family: 'Rocher', sans-serif;
+  display: flex;
+  justify-content: space-between; /* Gleiche Verteilung der Elemente in der Leiste */
+  padding: 5px;
+  background-color: #34495e;
+  hight: 50px;
+}
+
+/* Container für die Buttons */
+.nav-buttons {
+  display: flex;
+  align-items: center;
+}
+
+/* Buttons in der Navigationsleiste */
+.nav-button {
+  font-family: 'Rocher', sans-serif;
+  background-color: #4CAF50; /* Grüne Farbe wie im LoginOverlay */
+  color: white;
+  border: none;
+  padding: 7px 40px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.nav-button:not(:last-child) {
+  margin-right: 30px; /* 30px Abstand zwischen den Buttons */
+}
+
+.nav-button:hover {
+  background-color: #45a049; /* Farbwechsel beim Hover */
+}
+
+.speaker {
+  margin-left: 20px;
+  margin-right: 2030px;
+  height: 60px; /* Halbe Größe */
+  width: 60px;
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+
+  span {
+    display: block;
+    width: 16px; /* Halbe Breite */
+    height: 16px; /* Halbe Höhe */
+    background: #fff;
+    margin: 22px 0 0 4px; /* Angepasste Position */
+
+
+    &:after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-color: transparent #fff transparent transparent;
+      border-width: 20px 28px 20px 30px; /* Halbe Größe */
+      left: -26px; /* Angepasste Position */
+      top: 10px; /* Angepasste Position */
+    }
+
+    &:before {
+      transform: rotate(45deg);
+      border-radius: 0 100px 0 0; /* Angepasster Radius */
+      content: '';
+      position: absolute;
+      width: 10px; /* Halbe Breite */
+      height: 10px; /* Halbe Höhe */
+      border-style: double;
+      border-color: #fff;
+      border-width: 14px 14px 0 0; /* Halbe Dicke */
+      left: 36px; /* Angepasste Position */
+      top: 18px; /* Angepasste Position */
+      transition: all 0.2s ease-out;
+    }
+  }
+
+  &:hover {
+    span:before {
+      transform: scale(.8) translate(-6px, 0) rotate(42deg); /* Angepasste Transformation */
+    }
+  }
+
+  &.mute {
+    span:before {
+      transform: scale(.5) translate(-30px, 0) rotate(36deg); /* Angepasste Transformation */
+      opacity: 0;
+    }
+  }
+}
+
+/* Hauptcontainer-Stile */
+.main-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+  padding: 20px;
+}
+
+/* Skin-Editor-Stile */
+.skin-editor {
+  margin: 0 50px; /* 100px Abstand links und rechts */
+  height: 708px;
+}
+
+/* Spiel-Container Stile */
+.snake-game {
+  margin: 0 50px; /* 100px Abstand links und rechts */
+}
+
+/* Highscore-Container Stile */
+.Highscore-container {
+  margin: 0 50px; /* 100px Abstand links und rechts */
+  height: 708px;
+}
+
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  margin: 0; /* Entfernt den Standardrand */
+  padding: 0; /* Entfernt den Standardabstand */
 }
 
-.main-container {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin-top: 20px;
+body {
+  background-image: url('~@/assets/Hintergrund.jpg'); /* Ersetzen Sie 'pfad/zum/bild.jpg' durch den Pfad zu Ihrem Bild */
+  background-size: cover; /* Damit das Bild den ganzen Bildschirm bedeckt */
+  background-repeat: no-repeat; /* Verhindert, dass das Bild wiederholt wird */
+  background-attachment: fixed; /* Das Bild bleibt fest, auch wenn gescrollt wird */
+}
+html, body {
+  margin: 0; /* Entfernt den Standardrand */
+  padding: 0; /* Entfernt den Standardabstand */
+  /* Ihre anderen Stile... */
 }
 
-header {
-  background-color: #34495e;
-  padding: 15px;
-  color: white;
-  text-align: center;
-}
-
-/* ... (Weitere individuelle Stile können hinzugefügt werden) */
 </style>
+

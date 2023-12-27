@@ -1,4 +1,6 @@
 import { createStore } from 'vuex'
+import Vue from 'vue';
+import Highscore from '/src/component/Highscore.js';
 
 export default createStore({
     state: {
@@ -10,6 +12,8 @@ export default createStore({
         token: null,
         points: 0,
         userId: null,
+        Highscore: 0,
+        highscores: []
     },
     mutations: {
         setSelectedShape(state, shape) {
@@ -66,6 +70,26 @@ export default createStore({
         setSelectedSkin(state, skin) {
             state.selectedSkin = skin;
         },
-
+        addPoints(state, points) {
+            state.points += points;
+        },
+        setUserSkins(state, skins) {
+            state.savedSkins = skins;
+        },
+        setHighscore(state, Highscore) {
+            state.highscore = Highscore;
+        },
+        setHighscores(state, highscores) {
+            state.highscores = highscores;
+        }
+    },
+    actions: {
+        async fetchHighscores({ commit }) {
+            const highscoreService = new Highscore();
+            const highscores = await highscoreService.fetchHighscores();
+            commit('setHighscores', highscores);
+        }
     }
+
+
 })
