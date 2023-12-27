@@ -1,6 +1,7 @@
 <template>
   <div class="skin-editor">
     <strong><h1 class="title">Skin Editor</h1></strong>
+    <div class="separator-line"></div>
     <div class="form-container">
       <div class="color-picker">
         <h2 for="color" class="label">Choose a color:</h2>
@@ -19,7 +20,8 @@
 
     <button @click="saveCurrentSkinToDB" class="button save-button">Save</button>
 
-    <div class="saved-skins">
+    <div class="saved-skins-wrapper">
+      <div class="saved-skins">
       <div v-for="(skin, index) in savedSkins" :key="index" class="saved-skin">
         <div class="skin-info">
           <span class="skin-index">{{ index + 1 }}.</span>
@@ -30,6 +32,7 @@
           <button @click="updateSkin(index)" class="skin-button update">Update</button>
           <button @click="deleteSkin(index, skin.id)" class="skin-button delete">Delete</button>
         </div>
+      </div>
       </div>
     </div>
   </div>
@@ -61,7 +64,7 @@ export default {
       }
 
       if (!skin) {
-        console.error('Kein Skin zum Aktualisieren gefunden');
+        console.error('No skin found to update.');
         return;
       }
 
@@ -82,17 +85,17 @@ export default {
 
         if (!response.ok) {
           const errorData = await response.json();
-          console.error('Fehler beim Aktualisieren des Skins:', errorData.message || 'Unbekannter Fehler');
+          console.error("Error updating the skin:", errorData.message || "Unknown error");
           return;
         }
 
         const updatedSkinData = await response.json();
-        console.log('Skin erfolgreich aktualisiert:', updatedSkinData);
+        console.log('Skin successfully updated:', updatedSkinData);
         this.$store.commit('updateSkin', { index, updatedSkin: updatedSkinData });
 
 
       } catch (error) {
-        console.error('Fehler beim Aktualisieren des Skins:', error);
+        console.error('Error updating the skin:', error);
       }
     },
 
@@ -116,7 +119,7 @@ export default {
       if (!username) {
         // Benutzer ist nicht angemeldet, speichern Sie den Skin nur im Vuex Store
         this.$store.commit('setCurrentSkin', skin);  // Jetzt ist 'skin' definiert
-        alert("Skin wurde lokal gespeichert, aber nicht in der Datenbank.");
+        alert("Skin was saved locally but not in the database.");
         return;
       }
 
@@ -131,17 +134,17 @@ export default {
 
         if (!response.ok) {
           const errorData = await response.json();
-          console.error('Fehler beim Speichern des Skins:', errorData.message || 'Unbekannter Fehler');
+          console.error('Error saving the skin:', errorData.message || 'Unknown error');
           return;
         }
 
         const savedSkinData = await response.json();
-        console.log('Skin erfolgreich gespeichert:', savedSkinData);
+        console.log('Skin successfully saved:', savedSkinData);
         this.$store.commit('saveSkin', savedSkinData);  // Optional: Speichern des Skins im Vuex-Store
         this.loadSkin(savedSkinData.id); // Laden des gespeicherten Skins
 
       } catch (error) {
-        console.error('Fehler beim Speichern des Skins:', error);
+        console.error('Error saving the skin:', error);
       }
     },
 
@@ -163,10 +166,10 @@ export default {
           // Lokale Löschung im Vuex Store
           this.$store.commit('deleteSkin', index);
         } else {
-          console.error("Fehler beim Löschen des Skins:", response.status);
+          console.error("Error deleting the skin:", response.status);
         }
       } catch (error) {
-        console.error("Fehler beim Löschen des Skins:", error);
+        console.error("Error while deleting the skin:", error);
       }
     },
 
@@ -180,7 +183,7 @@ export default {
           this.$store.commit('setSkins', skins);  // Speichern der Skins im Vuex-Store
         }
       } catch (error) {
-        console.error('Fehler beim Abrufen der Skins:', error);
+        console.error('Error retrieving skins:', error);
       }
     },
 
@@ -204,13 +207,13 @@ export default {
           };
         case 'triangle':
           // Die Höhe des Dreiecks wird durch die borderBottom Breite bestimmt
-          // Die Basisbreite wird durch die Summe von borderLeft und borderRight bestimmt
+          // die Basisbreite wird durch die Summe von borderLeft und borderRight bestimmt
           return {
             width: '0',
             height: '0',
             borderLeft: `calc(${triangleBaseWidth} / 2) solid transparent`,
             borderRight: `calc(${triangleBaseWidth} / 2) solid transparent`,
-            borderBottom: `calc(${triangleBaseWidth} * 0.866) solid ${skin.color}` // Höhe des gleichseitigen Dreiecks ist etwa 0.866 mal der Basisbreite
+            borderBottom: `calc(${triangleBaseWidth} * 0.866) solid ${skin.color}` // Höhe des gleichseitigen Dreiecks ist etwa 0.866-mal der Basisbreite
           };
         default:
           return {};
@@ -242,16 +245,21 @@ export default {
   padding: 50px;
   text-align: center;
   max-width: 500px; /* Setzt eine maximale Breite */
-  height: auto;
-  min-height: 650px;
+  height: 875px;
   border: none;
 
+}
+.saved-skins-wrapper {
+  max-height: 350px; /* Beispielhöhe, passen Sie diese nach Bedarf an */
+  overflow-y: auto; /* Macht den Inhalt scrollbar, wenn er die maximale Höhe überschreitet */
+  width: 100%; /* Stellt sicher, dass die Breite der gesamten verfügbaren Breite entspricht */
+  margin-top: 20px; /* Optionaler Abstand zur Trennung vom Speicherbutton */
 }
 
 .title {
   font-family: 'Rocher', sans-serif;
   font-size: 50px;
-  margin-bottom: 20px;
+  margin-bottom: 5px; /* Verringert den Abstand zum Titel */
 }
 
 input[type="color"]::-webkit-color-swatch-wrapper {
@@ -264,7 +272,18 @@ input[type="color"]::-webkit-color-swatch {
   border: none;
 }
 
-.saved-skin .skin-preview {
+.separator-line {
+  margin-top: 5px; /* Optional, falls nötig, um den Abstand zur Trennlinie anzupassen */
+  margin-bottom: 10px; /* Beibehalten oder anpassen nach Bedarf */
+  top: 0;
+  left: 5%;
+  right: 5%;
+  width: 90%;
+  height: 8px;
+  background-image: linear-gradient(to right, transparent, rgb(252,212,92), transparent);
+}
+
+.saved-skin {
   display: inline-block;
   width: 20px;
   height: 20px;
@@ -342,10 +361,6 @@ input[type="color"] {
 }
 
 @media (max-width: 600px) {
-  .label-input-container {
-    flex-direction: column;
-    align-items: flex-start;
-  }
 
   .label {
     font-family: 'Rocher', sans-serif;

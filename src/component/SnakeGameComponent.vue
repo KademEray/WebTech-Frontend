@@ -18,9 +18,6 @@ import Board from "./Board.js";
 
 export default {
   computed: {
-    store() {
-      return store;
-    },
     points() {
       return this.$store.state.points;
     },
@@ -178,7 +175,7 @@ export default {
           this.$store.commit('setHighscore', Highscore);
         }
       } catch (error) {
-        console.error('Fehler beim Laden des Highscores:', error);
+        console.error('Error loading highscores:', error);
       }
     },
 
@@ -201,11 +198,11 @@ export default {
         });
 
         if (!response.ok) {
-          throw new Error('Fehler beim Aktualisieren des Highscores');
+          throw new Error('Error updating highscores');
         }
-        console.log('Highscore erfolgreich aktualisiert');
+        console.log('Highscore successfully updated:');
       } catch (error) {
-        console.error('Fehler beim Aktualisieren des Highscores:', error);
+        console.error('Error updating the highscore:', error);
       }
     },
 
@@ -223,22 +220,14 @@ export default {
         });
 
         if (!response.ok) {
-          throw new Error('Fehler beim Aktualisieren der Benutzerpunkte');
+          throw new Error('Error updating the user points');
         }
-        console.log('Punkte erfolgreich aktualisiert');
+        console.log('Points successfully updated');
       } catch (error) {
-        console.error('Fehler beim Aktualisieren der Punkte:', error);
+        console.error('Error updating points:', error);
       }
     }
     },
-
-  isNewHighscore() {
-    return this.points > this.Highscore;
-  },
-
-
-
-
 };
 </script>
 

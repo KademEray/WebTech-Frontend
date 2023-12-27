@@ -65,20 +65,22 @@ export default {
       this.$emit('authenticated');
     },
 
-    async register() {
+    async register()
+    {
       if (!this.registerData.username || !this.registerData.password) {
-        this.errorMessage = 'Benutzername und Passwort sind erforderlich';
+        this.errorMessage = 'Username and password are required.';
         return;
       }
 
       if (!this.isValidPassword(this.registerData.password)) {
         this.errorMessage =
-            'Das Passwort nicht gültig\n' +
-            'Mindestens 8 Zeichen\n' +
-            'Buchstaben (Groß- und Kleinbuchstaben)\n' +
-            'Zahlen\n' +
-            'Sonderzeichen (z.B. ! @ # $ % ^ & * ( ) , . ? " : { } | <>)';
+            'Password is not valid\n' +
+            'At least 8 characters\n' +
+            'Letters (uppercase and lowercase)\n' +
+            'Numbers\n' +
+            'Special characters (e.g., ! @ # $ % ^ & * ( ) , . ? " : { } | <>)';
         return;
+
       }
       try {
         const response = await fetch(`${API_BASE_URL}/`, {
@@ -88,22 +90,23 @@ export default {
         });
 
         if (response.ok) {
-          const userData = await response.json();
-          this.successMessage = 'Registrierung erfolgreich. Bitte loggen Sie sich ein.';
+          await response.json();
+          this.successMessage = 'Registration successful. Please log in.';
           this.showLogin = true;
         } else {
           const errorData = await response.json();
           if (response.status === 409) { // Konfliktstatus
-            this.errorMessage = 'Benutzername bereits vergeben';
+            this.errorMessage = 'Username already taken';
           } else {
-            this.errorMessage = errorData.message || 'Registrierung fehlgeschlagen';
+            this.errorMessage = errorData.message || 'Registration failed';
           }
         }
-      } catch (error) {
-        console.error('Registrierung fehlgeschlagen:', error);
-        this.errorMessage = 'Registrierung fehlgeschlagen';
+      }catch (error) {
+        console.error('Registration failed:', error);
+        this.errorMessage = 'Registration failed';
       }
-    },
+    }
+,
 
 
     // Hilfsfunktion zur Überprüfung der Passwortstärke
@@ -118,7 +121,7 @@ export default {
 
     async login() {
       if (!this.loginData.username || !this.loginData.password) {
-        this.errorMessage = 'Benutzername und Passwort sind erforderlich';
+        this.errorMessage = 'Username and password are required.';
         return;
       }
       try {
@@ -130,7 +133,7 @@ export default {
         if (response.ok) {
           const token = await response.text();
           localStorage.setItem('token', token);
-          this.successMessage = 'Login erfolgreich';
+          this.successMessage = 'Login successful.';
           this.isAuthenticated = true;
           this.$emit('authenticated');
 
@@ -142,13 +145,13 @@ export default {
           await this.loadUserPoints(this.loginData.username, token);
           await this.fetchUserSkins();
 
-          console.log("Benutzername im Vuex Store gesetzt:", this.$store.state.username);
+          console.log("Username set in Vuex store:", this.$store.state.username);
         } else {
-          this.errorMessage = 'Login fehlgeschlagen';
+          this.errorMessage = 'Login failed';
         }
       } catch (error) {
-        console.error('Login fehlgeschlagen:', error);
-        this.errorMessage = 'Login fehlgeschlagen';
+        console.error('Login failed:', error);
+        this.errorMessage = 'Login failed';
       }
     },
     logout() {
@@ -161,32 +164,8 @@ export default {
       this.$store.commit('setPoints', 0);
       this.$store.commit('resetState');
       this.showLogin = true;
-      console.log('Logout erfolgreich');
-      this.successMessage = 'Logout erfolgreich';
-    },
-
-    async fetchUserData() {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      try {
-        const response = await fetch(`${API_BASE_URL}/me`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!response.ok) {
-          console.log('Fehler beim Abrufen der Benutzerdaten');
-          return;
-        }
-        const text = await response.text();
-        if (text) {
-          const userData = JSON.parse(text);
-          console.log('Benutzerdaten:', userData);
-        } else {
-          console.log('Leere Antwort vom Server');
-          console.log('Statuscode:', response.status);
-        }
-      } catch (error) {
-        console.error('Ein Fehler ist aufgetreten:', error);
-      }
+      console.log('Logout successful');
+      this.successMessage = 'Logout successful';
     },
     async fetchUserSkins() {
       const username = this.$store.state.username;
@@ -198,7 +177,7 @@ export default {
           this.$store.commit('setSkins', skins);
         }
       } catch (error) {
-        console.error('Fehler beim Abrufen der Skins:', error);
+        console.error('Error retrieving skins:', error);
       }
     },
 
@@ -213,7 +192,7 @@ export default {
           this.$store.commit('setHighscore', points);
         }
       } catch (error) {
-        console.error('Fehler beim Laden der Benutzerpunkte:', error);
+        console.error('Error loading user points:', error);
       }
     },
 
@@ -284,7 +263,7 @@ export default {
   margin-top: 10px;
 }
 
-.input-field, .login-button, .logout-button, .register-button, .toggle-button, .error-message, .success-message, .Guest-button {
+.input-field, .login-button, .register-button, .toggle-button, .error-message, .success-message, .Guest-button {
   font-size: 28px; /* Setzt die Schriftgröße auf 28px */
 }
 

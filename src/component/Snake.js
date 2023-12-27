@@ -4,7 +4,6 @@ export default class Snake {
         this.store = store;
         this.snake = [];
         this.direction = 'up'; // Starte nach oben gerichtet
-        this.isActive = false;
     }
 
     initSnake(midX, midY, startDirection = 'up') {
@@ -136,11 +135,6 @@ export default class Snake {
     getHead() {
         return this.snake[0];
     }
-
-    getSegments() {
-        return this.snake.slice(1);
-    }
-
     grow() {
         // Fügen Sie ein neues Segment am Ende der Schlange hinzu
         const lastSegment = this.snake[this.snake.length - 1];

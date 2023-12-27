@@ -5,11 +5,11 @@ export default class Highscore {
             if (response.ok) {
                 return await response.json(); // Rückgabe der Daten statt sie hier zu speichern
             } else {
-                console.error('Fehler beim Abrufen der Highscores:', response.status, await response.text());
+                console.error('Error retrieving highscores:', response.status, await response.text());
                 return []; // Rückgabe eines leeren Arrays im Fehlerfall
             }
         } catch (error) {
-            console.error('Fehler:', error);
+            console.error('Error:', error);
             return [];
         }
     }

@@ -60,8 +60,8 @@ export default {
       this.$store.commit('setPoints', 0);
       this.$store.commit('resetState');
       this.showLogin = true;
-      console.log('Logout erfolgreich');
-      this.successMessage = 'Logout erfolgreich';
+      console.log('Logout successful');
+      this.successMessage = 'Logout successful';
 
       // Hier kann die Logout-Logik hinzugefügt werden, z.B. Token entfernen
     },

@@ -1,5 +1,4 @@
 import store from "@/store";
-import SnakeGameComponent from "@/component/SnakeGameComponent.vue";
 
 export default class Board {
     constructor(ctx, width, height, updateHighscoreCallback) {
@@ -7,7 +6,6 @@ export default class Board {
         this.width = width;
         this.height = height;
         this.food = {};
-        this.store = store;
         this.updateHighscoreCallback = updateHighscoreCallback; // Speichern der Callback-Funktion
     }
 
@@ -122,12 +120,12 @@ export default class Board {
             });
 
             if (!response.ok) {
-                throw new Error('Fehler beim Aktualisieren der Benutzerpunkte');
+                throw new Error('Error updating user points.');
             }
 
-            console.log('Punkte erfolgreich aktualisiert');
+            console.log('Points successfully updated.');
         } catch (error) {
-            console.error('Fehler beim Aktualisieren der Punkte:', error);
+            console.error('Error updating points:', error);
         }
     }
 
