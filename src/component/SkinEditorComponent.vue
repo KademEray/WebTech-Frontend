@@ -283,7 +283,7 @@ input[type="color"]::-webkit-color-swatch {
   background-image: linear-gradient(to right, transparent, rgb(252,212,92), transparent);
 }
 
-.saved-skin {
+.saved-skin .skin-preview {
   display: inline-block;
   width: 20px;
   height: 20px;
@@ -361,6 +361,10 @@ input[type="color"] {
 }
 
 @media (max-width: 600px) {
+  .label-input-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
   .label {
     font-family: 'Rocher', sans-serif;
