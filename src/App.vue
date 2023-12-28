@@ -214,13 +214,10 @@ export default {
   margin: 0; /* Entfernt den Standardrand */
   padding: 0; /* Entfernt den Standardabstand */
 }
-
 body {
-  background-image: url('~@/assets/Hintergrund.jpg'); /* Ersetzen Sie 'pfad/zum/bild.jpg' durch den Pfad zu Ihrem Bild */
-  background-size: cover; /* Damit das Bild den ganzen Bildschirm bedeckt */
-  background-repeat: no-repeat; /* Verhindert, dass das Bild wiederholt wird */
-  background-attachment: fixed; /* Das Bild bleibt fest, auch wenn gescrollt wird */
+  background-color: #a8d5a8; /* Pastellgrün */
 }
+
 html, body {
   margin: 0; /* Entfernt den Standardrand */
   padding: 0; /* Entfernt den Standardabstand */
