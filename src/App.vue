@@ -215,7 +215,7 @@ export default {
   padding: 0; /* Entfernt den Standardabstand */
 }
 body {
-  background-color: #a8d5a8; /* Pastellgrün */
+  background-color: RGB(72, 159, 181); /* Pastellgrün */
 }
 
 html, body {

@@ -73,6 +73,7 @@ export default {
     this.snake = new Snake(ctx, store);
     // Übergeben Sie eine Callback-Funktion an Board
     this.board = new Board(ctx, this.canvasWidth, this.canvasHeight, () => this.updateHighscoreIfNeeded());
+    this.board.drawGrid();
     this.snake.initSnake(this.canvasWidth / 2, this.canvasHeight / 2, 'up');
     this.board.initGame(this.snake);
   },
