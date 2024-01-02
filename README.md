@@ -1,5 +1,5 @@
 # Snake Game Frontend
-================
+
 
 ## Über das Projekt
 Das Frontend des Snake Games bietet eine interaktive Benutzeroberfläche für das klassische Snake-Spiel. Dieses Frontend arbeitet Hand in Hand mit seinem [Backend](https://github.com/KademEray/WebTech-Backend.git), um ein vollständiges Spielerlebnis zu ermöglichen.
