@@ -110,6 +110,7 @@ export default {
   border-radius: 4px;
   cursor: pointer;
   font-size: 22px;
+  margin-left: 185px;
 }
 
 .nav-button:not(:last-child) {
