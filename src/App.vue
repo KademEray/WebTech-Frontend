@@ -112,10 +112,6 @@ export default {
   margin-left: 185px;
 }
 
-.nav-button:not(:last-child) {
-  margin-right: 30px; /* 30px Abstand zwischen den Buttons */
-}
-
 .nav-button:hover {
   background-color: #45a049; /* Farbwechsel beim Hover */
 }
