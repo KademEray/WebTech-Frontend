@@ -6,7 +6,6 @@
         <a href="#" @click.prevent="toggleMute" class="speaker" :class="{ 'mute': isMuted }">
           <span></span>
         </a>
-        <button @click="showLoginOverlay" class="nav-button">Login</button>
         <button @click="logout" class="nav-button">Logout</button>
       </div>
     </nav>
