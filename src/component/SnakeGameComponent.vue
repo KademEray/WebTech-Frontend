@@ -62,7 +62,7 @@ export default {
       lastKeydownTime: 0,
       keyDelay: 100, // Verzögerung in Millisekunden
       gameSounds: {
-        eatSound: new Audio('/scale-d6-106129.mp3'),
+        eatSound: new Audio('/Pickup Sound.mp3'),
       },
     };
   },
