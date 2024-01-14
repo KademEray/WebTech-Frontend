@@ -1,5 +1,5 @@
 import { createStore } from 'vuex'
-import Highscore from '/src/component/Highscore.js';
+import Highscore from './component/Highscore.js';
 
 export default createStore({
     state: {
